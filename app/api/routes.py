@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, HTMLResponse
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.schemas.url import URLCreate, URLInfo
@@ -77,5 +77,33 @@ def redirect_to_url(short_code: str, request: Request, db: Session = Depends(get
         country=None
     )
     analytics_service.record_click(db, analytics_data)
+    
+    user_agent_lower = (request.headers.get("user-agent") or "").lower()
+    social_bots = ["whatsapp", "telegram", "twitterbot", "facebookexternalhit", "slackbot", "discordbot", "linkedinbot", "bot", "crawler", "spider", "preview", "slurp", "googlebot", "meta"]
+    is_bot = any(bot in user_agent_lower for bot in social_bots)
+    
+    if is_bot:
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SwiftLink | Redirecting...</title>
+    <meta property="og:title" content="SwiftLink — Shortened Link Preview">
+    <meta property="og:description" content="Destination: {db_url.original_url}">
+    <meta property="og:url" content="{db_url.original_url}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SwiftLink">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="SwiftLink — Shortened Link">
+    <meta name="twitter:description" content="Destination: {db_url.original_url}">
+    <meta http-equiv="refresh" content="0;url={db_url.original_url}">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 3rem; text-align: center; background: #0f172a; color: #f8fafc;">
+    <h2 style="margin-bottom: 1rem;">Redirecting to destination...</h2>
+    <p style="color: #94a3b8; word-break: break-all; max-width: 600px; margin: 0 auto;">{db_url.original_url}</p>
+    <script>window.location.replace("{db_url.original_url}");</script>
+</body>
+</html>"""
+        return HTMLResponse(content=html_content, status_code=200)
     
     return RedirectResponse(url=db_url.original_url, status_code=status.HTTP_307_TEMPORARY_REDIRECT)

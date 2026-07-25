@@ -2,7 +2,7 @@ import nanoid
 from sqlalchemy.orm import Session
 from app.models.url import URL
 from app.schemas.url import URLCreate
-def generate_short_code(size: int = 8) -> str:
+def generate_short_code(size: int = 5) -> str:
     alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     return nanoid.generate(alphabet, size)
 
