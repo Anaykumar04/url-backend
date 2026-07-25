@@ -1,7 +1,7 @@
 fastapi
 uvicorn[standard]
 sqlalchemy
-pydantic
+pydantic[email]
 pydantic-settings
 python-dotenv
 nanoid
@@ -11,3 +11,4 @@ python-jose[cryptography]
 python-multipart
 qrcode
 Pillow
+email-validator
