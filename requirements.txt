@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+pydantic-settings
+python-dotenv
+nanoid
+validators
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
+qrcode
+Pillow
