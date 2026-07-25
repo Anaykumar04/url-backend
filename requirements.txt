@@ -12,3 +12,4 @@ python-multipart
 qrcode
 Pillow
 email-validator
+psycopg2-binary
