@@ -7,15 +7,17 @@ from app.services import url_service
 from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.models.user import User
+from app.utils.helpers import get_client_base_url
 
 router = APIRouter()
 
 @router.post("/api/shorten", response_model=URLInfo, status_code=status.HTTP_201_CREATED)
-def create_url(url: URLCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_url(url: URLCreate, request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     db_url = url_service.create_short_url(db, url, owner_id=current_user.id)
     
-    # Create the full short URL to return
-    short_url = f"{settings.BASE_URL}/s/{db_url.short_code}"
+    # Create the full short URL dynamically based on client origin (localhost vs Vercel)
+    base_url = get_client_base_url(request)
+    short_url = f"{base_url}/s/{db_url.short_code}"
     
     return {
         "id": db_url.id,
@@ -27,12 +29,13 @@ def create_url(url: URLCreate, db: Session = Depends(get_db), current_user: User
     }
 
 @router.get("/api/urls/{short_code}/stats", response_model=URLInfo)
-def get_url_stats(short_code: str, db: Session = Depends(get_db)):
+def get_url_stats(short_code: str, request: Request, db: Session = Depends(get_db)):
     db_url = url_service.get_url_by_short_code(db, short_code)
     if db_url is None:
         raise HTTPException(status_code=404, detail="URL not found")
         
-    short_url = f"{settings.BASE_URL}/s/{db_url.short_code}"
+    base_url = get_client_base_url(request)
+    short_url = f"{base_url}/s/{db_url.short_code}"
     
     return {
         "id": db_url.id,
